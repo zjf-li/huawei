@@ -1,48 +1,55 @@
 const path = require('path')
 const glob = require('glob');
 const webpack = require('webpack');
-const { CleanWebpackPlugin }= require('clean-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
 
+
 const SetMap = () => {
     const entry = {};
-    const htmlWebpackPlugin = [];
+    const htmlWebpackPlugins = [];
     const entryFiles = glob.sync(path.join(__dirname, './src/pages/*/index.js'));
-   const urlLinks = Object.keys(entryFiles).map(index => {
+    const urlLinks = Object.keys(entryFiles).map(index => {
         const entryFile = entryFiles[index];
         const match = entryFile.match(/src\/pages\/(.*)\/index\.js/);
         const pageName = match && match[1];
         entry[pageName] = entryFile;
 
-        htmlWebpackPlugin.push(
-            new HtmlWebpackPlugin({
-                template: path.join(__dirname, `src//pages/${pageName}/index.html`),
-                filename: `${pageName}.html`,
-                chunks: [pageName],
-                inject: true,
-                minify: {
-                    html5: true,
-                    collapseWhitespace: true,
-                    preserveLineBreaks: false,
-                    minifyCSS: true,
-                    minifyJS: true,
-                    removeComments: false
-                }
-            })
-        )
+        htmlWebpackPlugins.push(new HtmlWebpackPlugin({
+            template: path.join(__dirname, `./src/pages/${pageName}/index.html`),
+            filename: `${pageName}.html`,
+            chunks: [pageName],
+            inject: 'body',
+            minify: {
+                html5: true,
+                collapseWhitespace: true,
+                preserveLineBreaks: false,
+                minifyCSS: true,
+                minifyJS: true,
+                removeComments: false
+            }
+        }))
         return `${pageName}: http://localhost:8080/${pageName}.html`
     })
 
-    return {entry, htmlWebpackPlugin,urlLinks}
+    return {entry, htmlWebpackPlugins, urlLinks}
 
 }
 
-const {entry, htmlWebpackPlugin,urlLinks} = SetMap()
+
+
+const {entry, htmlWebpackPlugins, urlLinks} = SetMap()
 
 module.exports = {
     entry: entry,
     mode: 'development',
+    watch: true,
+    watchOptions: {
+        ignored: /node_modules/,
+        aggregateTimeout: 300,
+        poll: 1000
+    },
     output: {
         path: path.join(__dirname, 'dist'),
         filename: '[name].js'
@@ -53,13 +60,15 @@ module.exports = {
                 test: /\.js$/,
                 use: 'babel-loader'
             },
-             {
+            {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader']
-            }, {
+            },
+            {
                 test: /\.less$/,
                 use: ['style-loader', 'css-loader', 'less-loader']
-            }, {
+            },
+            {
                 test: /.(png|jpg|git|jpeg)$/,
                 use: {
                     loader: 'url-loader',
@@ -67,30 +76,30 @@ module.exports = {
                         limit: 10240
                     }
                 }
+            }, {
+                test: /.(htm|html)$/,
+                use: 'raw-loader'
             }
         ]
     },
     plugins: [
-        new webpack.HotModuleReplacementPlugin(), 
-        new CleanWebpackPlugin(), 
-        new FriendlyErrorsWebpackPlugin({
-            // 成功的时候输出
-            compilationSuccessInfo: {
-              messages: [
-                `您的应用程序正在运行 here: http://localhost:8080`
-            ].concat(urlLinks)
+        new webpack.HotModuleReplacementPlugin(), new CleanWebpackPlugin(), new FriendlyErrorsWebpackPlugin(
+            { // 成功的时候输出
+                compilationSuccessInfo: {
+                    messages: [`您的应用程序正在运行 here: http://localhost:8080`].concat(urlLinks)
+                }
             }
-        })
-    ]
-    .concat(htmlWebpackPlugin)
-    ,
+        )
+    ].concat(htmlWebpackPlugins),
 
     devServer: {
-        contentBase: './dist',
-        hot:true,
+        contentBase: path.join(__dirname, 'dist'),
+        hot: true,
         stats: 'errors-only',
         host: 'localhost',
-        port: 8080
-    }
+        port: 8080,
+    },
+    devtool: 'source-map',
+    cache: true
 
 }
