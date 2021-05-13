@@ -66,7 +66,15 @@ module.exports = {
             },
             {
                 test: /\.less$/,
-                use: ['style-loader', 'css-loader', 'less-loader']
+                use: ['style-loader', 'css-loader', 'less-loader',{
+                    loader: 'style-resources-loader',
+                    options: {
+                        patterns: [ // 只有一条时也可以写成对象形式
+                            path.resolve(__dirname, './src/asset/global.less')
+                        ],
+                        injector: 'append' // 如果在样式文件之后导入就加此行配置
+                    }
+                }]
             },
             {
                 test: /.(png|jpg|git|jpeg)$/,
