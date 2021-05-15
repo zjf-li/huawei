@@ -32,6 +32,7 @@
   "dependencies": {
     "jQuery": "^1.7.4",
     "less-loader": "^4.1.0",
+    "lodash": "^4.17.21",
     "style-resources-loader": "^1.4.1"
   }
 }

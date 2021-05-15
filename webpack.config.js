@@ -97,7 +97,11 @@ module.exports = {
                     messages: [`您的应用程序正在运行 here: http://localhost:8080`].concat(urlLinks)
                 }
             }
-        )
+        ),
+        new webpack.ProvidePlugin({
+            _: 'lodash',
+            $:path.join(__dirname,'./src/asset/js/jquery.js')
+      })
     ].concat(htmlWebpackPlugins),
 
     devServer: {
